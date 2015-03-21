@@ -1,0 +1,120 @@
+﻿
+@section scripts {
+    <script src="@Url.Content("~/Scripts/jquery-1.6.2.js")" type="text/javascript"> </script>
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.11.min.js")" type="text/javascript"> </script>
+    <script src="@Url.Content("~/Scripts/jQuery.tmpl.js")" type="text/javascript"> </script>
+    <script type="text/javascript">
+        $(function () {
+            $.getJSON(
+                "api/books",
+                function (data) {
+                    $.each(data,
+                        function (index, value) {
+                            $("#bookTemplate").tmpl(value).appendTo("#books");
+                        }
+                    );
+                    $("#loader").hide("slow");
+                    $("#addBook").show("slow");
+                }
+            );
+
+            $("#addBook").submit(function () {
+                $.post(
+                    "api/books",
+                    $("#addBook").serialize(),
+                    function (value) {
+                        $("#bookTemplate").tmpl(value).appendTo("#books");
+                        $("#name").val("");
+                        $("#price").val("");
+                    },
+                    "json"
+                );
+                return false;
+            });
+            $(".removeBook").live("click", function () {
+                $.ajax({
+                    type: "DELETE",
+                    url: $(this).attr("href"),
+                    context: this,
+                    success: function () {
+                        $(this).closest("li").remove();
+                    }
+                });
+                return false;
+            });
+            $("input[type=\"submit\"], .removeBook, .viewImage").button();
+        });
+        function find() {
+            var id = $('#bookId').val();
+            $.getJSON("api/books/" + id,
+                function (data) {
+                    var str = data.Name + ': $' + data.Price;
+                    $('#book').html(str);
+                })
+                .fail(
+                    function (jqXHR, textStatus, err) {
+                        $('#book').html('Error: ' + err);
+                    });
+        }
+
+    </script>
+    <script id="bookTemplate" type="text/html"> 
+        <li>
+            <p>
+                <strong> Book ID:</strong> ${ Id}
+                <br />
+                <strong> Book Name:</strong> ${ Name }
+                <br />
+                <strong> Price: $</strong> ${ Price }
+            </p>
+            <p>
+                <a href="${ Self }" class="button small red removeBook">Remove</a>
+            </p>
+        </li>
+    </script>
+}
+<body>
+    <form method="post" id="addBook">
+    <div class="container_16">
+        <h1 class="title-01">
+            ASP.NET/MVC4 Web API Sample</h1>
+    </div>
+    <div class="container_16">
+        <div class="grid_16 body-container">
+            <div class="margin grid_6 alpha">
+                <label for="Name">
+                    Name</label><br />
+                <input type="text" id="name" name="Name" class="text grid_4" />
+                <br class="clear" />
+                <label for="Price">
+                    Price</label><br />
+                <input type="text" id="price" name="Price" class="text grid_4" />
+                <br class="clear" />
+                <input type="submit" value="Add" class="button small green" />
+                <br />
+                <br />
+                <br class="clear" />
+                <strong id="book">@*   <label id="book">
+                    </label>*@ </strong>
+                <br />
+                <br class="clear" />
+                <br />
+                <label for="bookId">
+                    Serach By ID
+                </label>
+                <br />
+                <input type="text" id="bookId" size="20" class="text grid_4" /><br class="clear" />
+                <input type="button" value="Search" onclick="find();" class="button small gray" />
+            </div>
+            <div class="grid_8 omega">
+                <img id="loader" src="images/ajax-loader.gif" />
+                <ul id="books" class="books">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <br class="clear" />
+    <div class="footer clearfix">
+    </div>
+    </form>
+</body>
